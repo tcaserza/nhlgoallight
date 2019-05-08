@@ -35,8 +35,7 @@ def check_game_state(team_id):
     return data['dates'][0]['games'][0]['status']['detailedState']
 
 
-def monitor_game(team_id,home_or_away,goals):
-    game_state = "In Progress"
+def monitor_game(team_id, home_or_away, game_state, goals):
     # play start of game music
     while game_state != "Final":
         game_url = os.path.join(NHL_API_URL, "schedule?teamId=%s&expand=schedule.linescore" % team_id)
@@ -57,10 +56,13 @@ def play_power_play_tune():
 
 def play_goal_horn():
     print("GOAL HORN")
+    subprocess.call(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/goal_horn_1.mp3'])
 
 
 def play_into_tune():
     print("INTRO")
+    subprocess.call(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/seek_and_destroy.mp3'])
+
 
 def light_goal_lamp():
     print("GOAL LAMP")
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         start_time = datetime.strptime(game_info['gameDate'], '%Y-%m-%dT%H:%M:%SZ')
         print("start_time: %s" % start_time)
         seconds_until_start = int((start_time - now_utc).total_seconds())
-        print ("seconds_until_start: %s" % seconds_until_start)
+        print("seconds_until_start: %s" % seconds_until_start)
         time.sleep(seconds_until_start - 60)
         game_state = game_info['status']['detailedState']
         if game_info['linescore']['teams']['home']['team']['id'] == team_id:
@@ -112,6 +114,6 @@ if __name__ == "__main__":
         if game_state == "Pre-game":
             play_into_tune()
         goals = game_info['linescore']['teams'][home_or_away]['goals']
-        monitor_game(team_id, home_or_away, goals)
+        monitor_game(team_id, home_or_away, game_state, goals)
 
 
