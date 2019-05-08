@@ -5,6 +5,7 @@ import subprocess
 import time
 from datetime import datetime
 from optparse import OptionParser
+from led import run_goal_light
 
 NHL_API_URL = "http://statsapi.web.nhl.com/api/v1/"
 
@@ -56,17 +57,17 @@ def play_power_play_tune():
 
 def play_goal_horn():
     print("GOAL HORN")
-    subprocess.call(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/goal_horn_1.mp3'])
+    p = subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/goal_horn_1.mp3'])
+    while p.poll() is None:
+        run_goal_light(1)
 
-
-def play_into_tune():
+def play_intro_tune():
     print("INTRO")
-    subprocess.call(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/seek_and_destroy.mp3'])
+    subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/seek_and_destroy.mp3'])
 
 
 def light_goal_lamp():
     print("GOAL LAMP")
-
 
 def get_options():
     program = os.path.basename(sys.argv[0])
@@ -112,8 +113,6 @@ if __name__ == "__main__":
         if game_state != "Pre-game" and game_state != "In Progress":
             print("Game state is not as it should be")
         if game_state == "Pre-game":
-            play_into_tune()
+            play_intro_tune()
         goals = game_info['linescore']['teams'][home_or_away]['goals']
         monitor_game(team_id, home_or_away, game_state, goals)
-
-
