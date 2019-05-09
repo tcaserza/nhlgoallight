@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# NeoPixel library strandtest example
+#Pixel library strandtest example
 # Author: Tony DiCola (tony@tonydicola.com)
 #
 # Direct port of the Arduino NeoPixel library strandtest example.  Showcases
@@ -79,13 +78,16 @@ def theaterChaseRainbow(strip, wait_ms=50):
                 strip.setPixelColor(i+q, 0)
 
 
-def run_goal_light(duration=60,wait_ms=50):
+def run_goal_light():
     strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
     strip.begin()
-    for i in range (0,duration):
-        colorWipe(strip, Color(153, 0, 153),10)
-        time.sleep(.5)
-        colorWipe(strip, Color(0,0,0), 10)
+    theaterChase(strip,Color(153, 0, 153),50,500)
+
+
+def clear_goal_light():
+    strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    strip.begin()
+    colorWipe(strip, Color(0,0,0), 10)
 
 
 # Main program logic follows:
