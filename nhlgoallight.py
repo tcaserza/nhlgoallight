@@ -40,31 +40,36 @@ def check_game_state(team_id):
 
 
 def monitor_game(team_id, home_or_away, game_state, goals):
+    previous_power_play = False
     if game_state != "In Progress":
         play_intro_tune()
     while game_state != "Final":
         game_url = os.path.join(NHL_API_URL, "schedule?teamId=%s&expand=schedule.linescore" % team_id)
         response = requests.get(game_url)
         data = response.json()
+        if previous_game_state == "Pre-Game" and game_state == "In Progress":
+            play_puck_drop()
         if data['dates'][0]['games'][0]['linescore']['teams'][home_or_away]['goals'] > goals:
             play_goal_horn()
             goals = data['dates'][0]['games'][0]['linescore']['teams'][home_or_away]['goals']
-        #  add power play check
+        power_play = data['dates'][0]['games'][0]['linescore']['teams'][home_or_away]['powerPlay']
+        if not previous_power_play and power_play:
+            play_power_play_tune()
         game_state = data['dates'][0]['games'][0]['status']['detailedState']
-        time.sleep(2)
-    if home_or_away == "home":
-        other_team = "away"
-    else:
-        other_team = "home"
-    if goals > data['dates'][0]['games'][0]['linescore']['teams'][other_team]['goals']:
-        play_goal_horn()
+        time.sleep(1)
+        previous_power_play = power_play
+        previous_game_state = game_state
+    game_url = os.path.join(NHL_API_URL, "schedule?teamId=%s&expand=schedule.linescore" % team_id)
+    response = requests.get(game_url)
+    data = response.json()
+    status_code = data['dates'][0]['games'][0]['status']['statusCode']
+    if (home_or_away == "home" and status_code == "7") or (home_or_away == "away" and status_code == "6"):
+        play_victory_tune()
 
 
 def play_goal_horn():
-    audio_process = None
     print("GOAL HORN")
     audio_process = subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/goal_horn_1.mp3'])
-
     print("GOAL LAMP")
     led_process = multiprocessing.Process(target=run_goal_light)
     led_process.start()
@@ -85,6 +90,26 @@ def play_intro_tune():
 def play_power_play_tune():
     print("POWER PLAY")
     subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/power_play.mp3'])
+
+
+def play_victory_tune():
+    print("VICTORY")
+    audio_process = subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/victory.mp3'])
+    print("GOAL LAMP")
+    led_process = multiprocessing.Process(target=run_goal_light)
+    led_process.start()
+    if audio_process:
+        while audio_process.poll() is None:
+            time.sleep(1)
+    else:
+        time.sleep(30)
+    led_process.terminate()
+    clear_goal_light()
+
+
+def play_puck_drop():
+    print("PUCK DROP")
+    subprocess.Popen(['/usr/bin/omxplayer', '/home/pi/nhlgoallight/audio/puck_drop.mp3'])
 
 
 def light_goal_lamp():
