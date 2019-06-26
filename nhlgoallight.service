@@ -1,0 +1,7 @@
+[Unit]
+Description=NHL Goal Light and Horn
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/pi/nhlgoallight/nhlgoallight.py
+Restart=on-failure
